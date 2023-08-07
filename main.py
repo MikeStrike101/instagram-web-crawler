@@ -1,17 +1,25 @@
-import requests
-from bs4 import BeautifulSoup
-import json
+import instaloader
 
-username = input("Enter Instagram username: ")
+def get_instagram_user_info(username):
+    L = instaloader.Instaloader()
 
-r = requests.get("http://instagram.com/" + username)
-soup = BeautifulSoup(r.text,'html.parser')
+    try:
+        profile = instaloader.Profile.from_username(L.context, username)
 
-userInfo = soup.find("meta",property = 'og:description')
-userDesc = json.loads(soup.find('script', type='application/ld+json').string)
+        print(f"Username: {username}")
+        print(f"Number of Posts: {profile.mediacount}")
+        print(f"Number of Followers: {profile.followers}")
+        print(f"Number of Following: {profile.followees}")
+        print(f"Description: {profile.biography}")
 
-print("Here are " + username + "'s stats: " + "\n")
-print(userInfo.attrs["content"][:40])
-print("                 ")
-print("Here is " + username + "'s description: \n")
-print(userDesc['description'])
+    except instaloader.exceptions.ProfileNotExistsException as e:
+        print(f"Error: Profile '{username}' does not exist.")
+    except instaloader.exceptions.PrivateProfileNotFollowedException as e:
+        print(f"Error: Profile '{username}' is private and not followed.")
+    except Exception as e:
+        print("Error: Unable to fetch data.")
+        print(e)
+
+if __name__ == "__main__":
+    username_input = input("Enter Instagram username: ")
+    get_instagram_user_info(username_input)
